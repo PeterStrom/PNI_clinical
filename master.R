@@ -14,7 +14,7 @@
 #-----------------------------------------------------------------------------
 
 #-- Libraries ----------------------------------------------------------------
-wants <- c("tidyverse")
+wants <- c("tidyverse", "lubridate")
 has   <- wants %in% rownames(installed.packages())
 if(any(!has)) install.packages(wants[!has])
 lapply(wants, require, character.only = TRUE)
