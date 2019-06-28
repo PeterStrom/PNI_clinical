@@ -1,3 +1,4 @@
+##############################################################################
 # NOTES 
 # C61	Malign tumör i prostata | Underliggande dödsorsak ("ULORSAK") -> no events.
 # sum(DTA$ULORSAK == 'C61')
@@ -5,19 +6,24 @@
 # TODO:
 # 1. Check agreement of PerineuralInvasion in DTA and my own variable from python.
 # 2. Link PSA relaps, death, migration
+##############################################################################
 
+##############################################################################
 # Read data and selcect columns of interest.
+##############################################################################
 data_path <- "../data/raw_data"
 SCB_PERS <- read_csv(file.path(data_path, 'sthlm0', 'SCB2_PERSON_MAIN.csv'))  # Personal characteristics
-SCB_INCA <- read_csv(file.path(data_path, 'sthlm0', 'SCB2_S0_INCA.csv'))  # Quality cancer register INCA
-SCB_PSA_ <- read_csv(file.path(data_path, 'sthlm0', 'SCB2_S0_PSA.csv'))  # STHLM0 PSA register
+# SCB_INCA <- read_csv(file.path(data_path, 'sthlm0', 'SCB2_S0_INCA.csv'))  # Quality cancer register INCA
+SCB_PSA <- read_csv(file.path(data_path, 'sthlm0', 'SCB2_S0_PSA.csv'))  # STHLM0 PSA register
 SOS_DEAD <- read_csv(file.path(data_path, 'sthlm0', 'SOS2_DEAD_CAUSE.csv'))  # Cause of death register
 LINK_rid_REG <- read_tsv(file.path(data_path, 'sthlm3',  'STHLM3_STUDY.txt'))  # Link between STHLM0 and STHLM3
 LINK_rid_studieid <- readxl::read_excel(file.path(data_path, 'PADoIPToStudieID_20180917.xlsx'))
 DTA <- readxl::read_excel(file.path(data_path, 'PatiOrdning_Ren.xlsx'))  # Postop data STHLM3
 PNI_info <- read_csv(file.path(data_path, 'pni_core.csv'))
 
+##############################################################################
 # Combine the link information for STHLM3 and STHLM0.
+##############################################################################
 keep <- c("REGnr",
           "Studieid__contact_patologsvar_",
           "VisitDate",
@@ -27,7 +33,9 @@ LINK_rid_studieid <- LINK_rid_studieid %>% rename(Studieid = Studieid__contact_p
                                                   RID = rid)
 LINK <- left_join(x=LINK_rid_studieid, y=LINK_rid_REG, by="RID")
 
+##############################################################################
 # Columns to use from STHLM3 postop (DTA).
+##############################################################################
 keep <- c("Studieid",
          "Birth",
          "TotalPSA",
@@ -66,8 +74,11 @@ keep <- c("Studieid",
          "pT")
 
 DTA <- DTA[keep]
+DTA$Op_datum <- as.Date(format(DTA$Op_datum, format='%Y-%m-%d'))
 
+##############################################################################
 # Aggregate n PNI cores per man and add to DTA.
+##############################################################################
 pni <- aggregate(PNI_info$slide_pni, by=list(Category=PNI_info$REGNR), FUN=sum)
 pni <- pni %>% rename(REGnr = Category, pni_n_slides = x)
 
@@ -76,8 +87,10 @@ pni$REGnr <- NULL
 pni <- pni[!is.na(pni$Studieid), ]
 DTA <- left_join(x=DTA, y=pni, by="Studieid")
 
+##############################################################################
 # From cause of death register add death date.
-keep <- c("DODSDAT",
+##############################################################################
+keep <- c("X_DODSDAT",
           "LOPNR")
 SOS_DEAD <- SOS_DEAD[keep]
 
@@ -85,7 +98,9 @@ SOS_DEAD <- left_join(x=SOS_DEAD, y=LINK[, c("Studieid", "LOPNR")], by="LOPNR")
 SOS_DEAD$LOPNR <- NULL
 DTA <- left_join(x=DTA, y=SOS_DEAD, by="Studieid")
 
+##############################################################################
 # Men moving out of Stockholm, first add operation date.
+##############################################################################
 SCB_PERS <- left_join(x=SCB_PERS, y=LINK[, c("Studieid", "LOPNR")], by="LOPNR")
 SCB_PERS$LOPNR <- NULL
 SCB_PERS <- left_join(x=DTA, y=SCB_PERS, by="Studieid")
@@ -111,10 +126,14 @@ men_moving_out_of_sthlm <- function(SCB_PERS){
   df_emi_sthlm <- SCB_PERS[, col]
   
   # Make long format
-  df_emi_sthlm <- gather(df_emi_sthlm, key = "county_year", value = "county", COUNTY_2008:COUNTY_2017)
+  df_emi_sthlm <- gather(df_emi_sthlm,
+                         key="county_year",
+                         value="county",
+                         COUNTY_2008:COUNTY_2017)
   
   # Make variable for each year
-  df_emi_sthlm['change_county_date'] <- as.numeric(substr(df_emi_sthlm$county_year, 8, 11))
+  df_emi_sthlm['change_county_date'] <- as.numeric(substr(df_emi_sthlm$county_year,
+                                                          8, 11))
   df_emi_sthlm$county_year <- NULL
   
   # Make indicator variabel for men NOT in Stockholm for ear year.
@@ -140,13 +159,27 @@ men_moving_out_of_sthlm <- function(SCB_PERS){
 
 move <- men_moving_out_of_sthlm(SCB_PERS=SCB_PERS)
 move <- move[, c("Studieid", "emidate_sthlm")]
-
 DTA <- left_join(x=DTA, y=move, by="Studieid")
 
-# DELETE BELOW
-table(DTA$PerineuralInvasion)
-head(SCB2_PERS)
-sub <- SCB2_PERS %>% filter(LOPNR %in% LINK$LOPNR)
-sub <- LINK %>% filter(Studieid %in% DTA$Studieid)
+##############################################################################
+# Add PSA data
+##############################################################################
+SCB_PSA <- SCB_PSA[c("LOPNR", "X_SAMPLE_DATE", "X_RESULT")]
 
-diag_date = as.Date("2015-01-01")
+# Remove Missing date or value on PSA
+SCB_PSA <- SCB_PSA %>% drop_na(X_SAMPLE_DATE)
+SCB_PSA <-SCB_PSA[SCB_PSA$X_RESULT >= 0, ]
+
+# Select all PSA tests after operation date.
+SCB_PSA <- left_join(x=LINK[, c("Studieid", "LOPNR")], y=SCB_PSA, by="LOPNR")
+SCB_PSA$LOPNR <- NULL
+SCB_PSA <- left_join(x=DTA[, c("Studieid", "Op_datum")], y=SCB_PSA, by="Studieid")
+SCB_PSA$X_SAMPLE_DATE <- as.Date(format(SCB_PSA$X_SAMPLE_DATE, format='%Y-%m-%d'))
+SCB_PSA <- SCB_PSA %>% filter(Op_datum < X_SAMPLE_DATE)
+SCB_PSA$Op_datum <- NULL
+DTA <- left_join(x=DTA, y=SCB_PSA, by="Studieid")
+
+##############################################################################
+# Save analysis data
+##############################################################################
+save(DTA, file="../data/analysis_data.RData")

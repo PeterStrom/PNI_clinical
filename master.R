@@ -21,8 +21,8 @@ lapply(wants, require, character.only = TRUE)
 rm(wants, has)
 
 #-- Main program -------------------------------------------------------------
-source("raw_to_analysis.R")
-
+# source("raw_to_analysis.R")  # Only need once!
+source("survival.R")
 
 ##############################################################################
 ## NOTES about the data
