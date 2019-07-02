@@ -14,13 +14,17 @@
 #-----------------------------------------------------------------------------
 
 #-- Libraries ----------------------------------------------------------------
-wants <- c("tidyverse", "lubridate")
+wants <- c("tidyverse", "lubridate", "Epi", "survival", "survminer")
 has   <- wants %in% rownames(installed.packages())
 if(any(!has)) install.packages(wants[!has])
 lapply(wants, require, character.only = TRUE)
 rm(wants, has)
 
 #-- Main program -------------------------------------------------------------
+event_threshold = 0.2  # ng/mL also common value is 0.4
+first_psa_below = 0.2  # ng/mL
+end_of_study = as.Date("2017-12-31")
+
 # source("raw_to_analysis.R")  # Only need once!
 source("survival.R")
 

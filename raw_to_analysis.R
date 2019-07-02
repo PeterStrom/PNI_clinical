@@ -2,10 +2,6 @@
 # NOTES 
 # C61	Malign tumör i prostata | Underliggande dödsorsak ("ULORSAK") -> no events.
 # sum(DTA$ULORSAK == 'C61')
-
-# TODO:
-# 1. Check agreement of PerineuralInvasion in DTA and my own variable from python.
-# 2. Link PSA relaps, death, migration
 ##############################################################################
 
 ##############################################################################
@@ -75,6 +71,16 @@ keep <- c("Studieid",
 
 DTA <- DTA[keep]
 DTA$Op_datum <- as.Date(format(DTA$Op_datum, format='%Y-%m-%d'))
+DTA$end_of_study <- end_of_study
+DTA$Birth <- as.Date(DTA$Birth, format = "%Y%m%d")
+DTA$Inclusion_age <- as.numeric(DTA$Inclusion_age)
+DTA$VisitDate <- as.Date(format(DTA$VisitDate, format='%Y-%m-%d'))
+
+# Remove 6 duplicated rows (very similar so keep first)
+DTA <- DTA %>%
+  group_by(Studieid) %>%
+  filter(row_number() == 1) %>%
+  ungroup()
 
 ##############################################################################
 # Aggregate n PNI cores per man and add to DTA.
@@ -164,17 +170,21 @@ DTA <- left_join(x=DTA, y=move, by="Studieid")
 ##############################################################################
 # Add PSA data
 ##############################################################################
+# Keep only rows corresponing to TotalPSA
+SCB_PSA <- SCB_PSA %>% filter(PSA_RESULT_TYPE == 1)
+
+SCB_PSA[(SCB_PSA$RESULT_RAW == "<0,05") & (!is.na(SCB_PSA$RESULT_RAW)), ]$X_RESULT <- 0.05
 SCB_PSA <- SCB_PSA[c("LOPNR", "X_SAMPLE_DATE", "X_RESULT")]
 
 # Remove Missing date or value on PSA
-SCB_PSA <- SCB_PSA %>% drop_na(X_SAMPLE_DATE)
+SCB_PSA$X_SAMPLE_DATE <- as.Date(format(SCB_PSA$X_SAMPLE_DATE, format='%Y-%m-%d'))
 SCB_PSA <-SCB_PSA[SCB_PSA$X_RESULT >= 0, ]
+SCB_PSA <- SCB_PSA %>% drop_na(X_SAMPLE_DATE)
 
 # Select all PSA tests after operation date.
 SCB_PSA <- left_join(x=LINK[, c("Studieid", "LOPNR")], y=SCB_PSA, by="LOPNR")
 SCB_PSA$LOPNR <- NULL
 SCB_PSA <- left_join(x=DTA[, c("Studieid", "Op_datum")], y=SCB_PSA, by="Studieid")
-SCB_PSA$X_SAMPLE_DATE <- as.Date(format(SCB_PSA$X_SAMPLE_DATE, format='%Y-%m-%d'))
 SCB_PSA <- SCB_PSA %>% filter(Op_datum < X_SAMPLE_DATE)
 SCB_PSA$Op_datum <- NULL
 DTA <- left_join(x=DTA, y=SCB_PSA, by="Studieid")
