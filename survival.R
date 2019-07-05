@@ -1,5 +1,3 @@
-load("../data/analysis_data.RData")
-
 ##############################################################################
 # Remove subjects who still have high PSA at first test after RP
 ##############################################################################
@@ -11,6 +9,9 @@ psa_first_high <- DTA %>%
 psa_first_high <- unique(psa_first_high$Studieid)
 
 DTA <- DTA[!(DTA$Studieid %in% psa_first_high), ]
+
+tracker <- tracker %>% add_row(text="first PSA low",
+                               n=n_distinct(DTA$Studieid))
 
 ##############################################################################
 # Define event.
@@ -62,33 +63,13 @@ attributes(DTA$exit_cause) <- NULL
 ##############################################################################
 # Lexis diagram.
 ##############################################################################
-pniL <- Lexis( entry = list(cy=cal.yr(DTA$Op_datum)-cal.yr(DTA$Op_datum),
-                            age=Inclusion_age),
-               exit = list( cy=cal.yr(DTA$exit_date)-cal.yr(DTA$Op_datum)),
-               exit.status = (exit_cause == "psa_relapse_date")*1,
-               data = DTA )
-
-pdf("../output/Lexis.pdf")
-# col=c("blue","red")[(pniL$pni_n_slides>0)+1]
-plot( pniL, 1:2, lwd=1, col="grey",
-      grid=TRUE, lty.grid=1, col.grid=gray(0.7),
-      xlim=0+c(0,5.3), xaxs="i",
-      ylim=49+c(0,26), yaxs="i", las=1,
-      xlab="Years since operation",
-      ylab="Age at operation",
-      main="Lexis diagram of time from RP to PSA relapse")
-points( pniL, 1:2, pch=c(NA,3)[pniL$lex.Xst+1],
-        col=c("blue","red")[(pniL$pni_n_slides>0)+1], lwd=1.5, cex=1.5 )
-dev.off()
-
-
 pniL <- Lexis( entry = list(cy=cal.yr(DTA$Op_datum),
                             age=Inclusion_age),
                exit = list( cy=cal.yr(DTA$exit_date)),
                exit.status = (exit_cause == "psa_relapse_date")*1,
                data = DTA )
 
-pdf("../output/Lexis_calender.pdf")
+pdf("../output/Lexis_calendar.pdf")
 # col=c("blue","red")[(pniL$pni_n_slides>0)+1]
 plot( pniL, 1:2, lwd=1, col="grey",
       grid=TRUE, lty.grid=1, col.grid=gray(0.7),

@@ -9,7 +9,6 @@
 ##############################################################################
 data_path <- "../data/raw_data"
 SCB_PERS <- read_csv(file.path(data_path, 'sthlm0', 'SCB2_PERSON_MAIN.csv'))  # Personal characteristics
-# SCB_INCA <- read_csv(file.path(data_path, 'sthlm0', 'SCB2_S0_INCA.csv'))  # Quality cancer register INCA
 SCB_PSA <- read_csv(file.path(data_path, 'sthlm0', 'SCB2_S0_PSA.csv'))  # STHLM0 PSA register
 SOS_DEAD <- read_csv(file.path(data_path, 'sthlm0', 'SOS2_DEAD_CAUSE.csv'))  # Cause of death register
 LINK_rid_REG <- read_tsv(file.path(data_path, 'sthlm3',  'STHLM3_STUDY.txt'))  # Link between STHLM0 and STHLM3
@@ -25,7 +24,8 @@ keep <- c("REGnr",
           "VisitDate",
           "rid")
 LINK_rid_studieid <- LINK_rid_studieid[keep]
-LINK_rid_studieid <- LINK_rid_studieid %>% rename(Studieid = Studieid__contact_patologsvar_,
+LINK_rid_studieid <- LINK_rid_studieid %>% 
+  rename(Studieid = Studieid__contact_patologsvar_,
                                                   RID = rid)
 LINK <- left_join(x=LINK_rid_studieid, y=LINK_rid_REG, by="RID")
 
@@ -75,12 +75,20 @@ DTA$end_of_study <- end_of_study
 DTA$Birth <- as.Date(DTA$Birth, format = "%Y%m%d")
 DTA$Inclusion_age <- as.numeric(DTA$Inclusion_age)
 DTA$VisitDate <- as.Date(format(DTA$VisitDate, format='%Y-%m-%d'))
+DTA$TotalPSA <- as.numeric(DTA$TotalPSA)
 
 # Remove 6 duplicated rows (very similar so keep first)
 DTA <- DTA %>%
   group_by(Studieid) %>%
   filter(row_number() == 1) %>%
   ungroup()
+
+# Remove 4 benign cases.
+benign = c("D10035047", "D10062831", "D10075489", "D10260723")
+DTA <- DTA[!(DTA$Studieid %in% benign), ]
+
+# Make a tracker for cohort selection.
+tracker <- data.frame(text = "All with RP in STHLM3", n = dim(DTA)[1])
 
 ##############################################################################
 # Aggregate n PNI cores per man and add to DTA.
@@ -116,16 +124,17 @@ men_moving_out_of_sthlm <- function(SCB_PERS){
   # Function to get the year STHLM0 men are moving out of the county.
   # 
   # Args:
-  #     SCB_PERS: A data.frame with SCB total population register with STHLM0 men. Must contain
-  #               LOPNR, COUNTY_20XX columns and 'start_var'.
+  #     SCB_PERS: A data.frame with SCB total population register with STHLM0
+  #               men. Must contain LOPNR, COUNTY_20XX columns and 'start_var'.
   #     id: an ID variable unique for each subject.
-  #     start_var: a column in the data.frame with first date to consider, e.g. diagose date.
+  #     start_var: a column in the data.frame with first date to consider, e.g.
+  #               diagose date.
   # 
   # Return:
   #   A data.frame with LOPNR and the first year of moving (change_county_date).
   # 
-  # NOTE: Migration from STHLM County Extract first year when not living in STHLM - Emigration 
-  # will be coded end of that year: year-12-31
+  # NOTE: Migration from STHLM County Extract first year when not living in
+  #       STHLM - Emigration will be coded end of that year: year-12-31.
   
   # Select columns
   col = c("Studieid", paste("COUNTY_", 2008:2017, sep = ""), "Op_datum")
@@ -150,14 +159,14 @@ men_moving_out_of_sthlm <- function(SCB_PERS){
   # Filter years after "Op_datum".
   df_emi_sthlm <- filter(df_emi_sthlm, change_county_date >= year(Op_datum))
   
-  # Select the first year of moving out of Stockholm for those that do, and code the last
-  # day of the year for each man.
+  # Select the first year of moving out of Stockholm for those that do, and
+  # code the last day of the year for each man.
   df_emi_sthlm <- df_emi_sthlm %>% 
     arrange(Studieid, change_county_date) %>% 
     filter(flag == 1) %>%  # flag == 1 means not Stockholm or missing info.
     group_by(Studieid) %>% 
     filter(row_number() == 1) %>% 
-    mutate(emidate_sthlm = as.Date(paste(change_county_date, "-", "12", "-", "31", sep = ""),
+    mutate(emidate_sthlm = as.Date(paste(change_county_date, "-12-31", sep = ""),
                                    format = "%Y-%m-%d"))
   
   return(df_emi_sthlm)
@@ -192,4 +201,4 @@ DTA <- left_join(x=DTA, y=SCB_PSA, by="Studieid")
 ##############################################################################
 # Save analysis data
 ##############################################################################
-save(DTA, file="../data/analysis_data.RData")
+save(DTA, tracker, file="../data/analysis_data.RData")

@@ -26,7 +26,11 @@ first_psa_below = 0.2  # ng/mL
 end_of_study = as.Date("2017-12-31")
 
 # source("raw_to_analysis.R")  # Only need once!
+load("../data/analysis_data.RData")
+
+source("create_variables.R")
 source("survival.R")
+source("Table1.R")
 
 ##############################################################################
 ## NOTES about the data
