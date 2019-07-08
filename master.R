@@ -7,14 +7,13 @@
 #               in prostate cancer diagnosis, i.e. does it have an independent
 #               prognostic value. 
 # Data used...: SCB2_PERSON_MAIN
-#               SCB2_S0_INCA
 #               SCB2_S0_PSA
 #               SOS2_DEAD_CAUSE
 # Output......: 
 #-----------------------------------------------------------------------------
 
 #-- Libraries ----------------------------------------------------------------
-wants <- c("tidyverse", "lubridate", "Epi", "survival", "survminer")
+wants <- c("tidyverse", "lubridate", "Epi", "survival", "survminer", "openxlsx")
 has   <- wants %in% rownames(installed.packages())
 if(any(!has)) install.packages(wants[!has])
 lapply(wants, require, character.only = TRUE)
@@ -28,10 +27,7 @@ end_of_study = as.Date("2017-12-31")
 # source("raw_to_analysis.R")  # Only need once!
 load("../data/analysis_data.RData")
 
+source("analysis_to_survival.R")
 source("create_variables.R")
 source("survival.R")
 source("Table1.R")
-
-##############################################################################
-## NOTES about the data
-##############################################################################
