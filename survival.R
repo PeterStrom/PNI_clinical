@@ -74,6 +74,9 @@ surv <- survfit(hr_surv, newdata=newdata, censor = TRUE, type = 'kalbfleisch-pre
 
 # 3 year survival for PNI and no PNI, at median and mode for adjusting variables.
 surv3yr <- summary(surv, times=3)[c("surv", "lower", "upper")]
+surv3yr <- lapply(surv3yr, function(x){formatC(x, digits = 2, format = "f")})
+surv_ci <- function(x){with(surv3yr, paste0(surv[x], " (", lower[x], "-", upper[x], ")"))}
+surv3yr <- lapply(c(unexposed=1, exposed=2), surv_ci)
 
 gg <- ggsurvplot(surv,
                  data=DTA,

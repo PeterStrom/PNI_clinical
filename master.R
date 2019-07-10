@@ -31,3 +31,6 @@ source("analysis_to_survival.R")
 source("create_variables.R")
 source("survival.R")
 source("Table1.R")
+
+save(newdata, tracker, surv3yr, n_exp, n_unexp,
+     file="../data/numbers_for_article.RData")
