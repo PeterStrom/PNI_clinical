@@ -12,8 +12,8 @@ plot(pniL, 1:2, lwd=1, col="grey",
      grid=TRUE, lty.grid=1, col.grid=gray(0.7),
      xlim=2012.8 + c(0, 5.5), xaxs="i",
      ylim=49 + c(0, 26), yaxs="i", las=1,
-     xlab="Calender year of operation",
-     ylab="Age at operation",
+     xlab="Calendar Year",
+     ylab="Age",
      main="Lexis diagram of time from RP to PSA relapse")
 points( pniL, 1:2, pch=c(NA, 3)[pniL$lex.Xst+1],
         col=c("blue", "red")[(pniL$pni_n_slides>0)+1], lwd=1.5, cex=1.5 )
