@@ -25,7 +25,6 @@ DTA[DTA$PerineuralInvasion == "Ja" & is.na(DTA$pni_n_slides), 'pni_n_slides'] <-
 DTA$PNI <- DTA$pni_n_slides
 DTA$PNI[DTA$PNI > 3] <- "4 or more"
 DTA$PNI <- factor(DTA$PNI)
-DTA$PNI <- factor(DTA$PNI, levels(DTA$PNI)[rev(1:5)])
 
 DTA$`Perineural invasion` <- DTA$pni_n_slides > 0
 DTA$`Perineural invasion` <- ifelse(DTA$`Perineural invasion`, "Positive", "Negative")
@@ -33,3 +32,37 @@ DTA$`Perineural invasion` <- as.factor(DTA$`Perineural invasion`)
 
 DTA$Cancerlength_cat <- with(DTA, cut(DTA$Cancerlength, c(0, 5, 10, 20, 40, Inf), right = FALSE))
 DTA$`Cancer length (per 10mm)` <- DTA$Cancerlength / 10
+
+# Variables from RP
+# There are a few missing values in the RP variables, impute these with the mode.
+# We also have info of Lymph node positivity (Ant_kortlar_utrymda_o_antal_pos) but
+# it is almost entiarly missing (698 missing).
+
+# Pathological stage
+DTA$`Pathological stage` <- 'T2'  # 7 missing imputed as pT2
+tmp <- tolower(DTA$pT)
+DTA$`Pathological stage`[grepl('p3|pt3|t3', tmp)] <- 'T3a'
+DTA$`Pathological stage`[grepl('3b|4', tmp)] <- 'T3b/T4'  # Only one case of T4
+DTA$`Pathological stage` <- as.factor(DTA$`Pathological stage`)
+
+# Positive surgical margin
+tmp = grepl('pos', DTA$Resektionsrand_po__el_neg)  # 4 missing imputed as neg.
+DTA$`Surgical margin` <- 'Negative'
+DTA$`Surgical margin`[tmp] <- 'Positive'
+DTA$`Surgical margin` <- as.factor(DTA$`Surgical margin`)
+
+# Extraprostatic extension
+tmp = grepl('pos|ja', DTA$Extraprostatisk_vaxt_pos_el_neg)  # 10 missing imputed as neg.
+DTA$`Extraprostatic extension` <- 'Negative'
+DTA$`Extraprostatic extension`[tmp] <- 'Positive'
+DTA$`Extraprostatic extension` <- as.factor(DTA$`Extraprostatic extension`)
+
+# Seminal vesicle invasion
+tmp = grepl('pos|ja', DTA$Vesikelinvasion_pos_el_neg)  # 20 missing imputed as neg.
+DTA$`Seminal vesicle invasion` <- 'Negative'
+DTA$`Seminal vesicle invasion`[tmp] <- 'Positive'
+DTA$`Seminal vesicle invasion` <- as.factor(DTA$`Seminal vesicle invasion`)
+
+
+
+

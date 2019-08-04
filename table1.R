@@ -19,7 +19,9 @@ make_table_1 <- function(x){
                   x$`Digital rectal examination`,
                   x$Cancerlength_cat,
                   x$`Gleason score`,
-                  x$PNI)
+                  x$PNI,
+                  x$`Pathological stage`,
+                  x$`Surgical margin`)
   l_t1 <- lapply(varList, function(y) table1fun(col = y))
   t1 <- as.data.frame(bind_rows(l_t1))
   return(t1)

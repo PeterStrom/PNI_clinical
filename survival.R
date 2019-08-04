@@ -25,7 +25,7 @@ dev.off()
 DTA$time = (DTA$exit_date - DTA$Op_datum) / 365.25
 DTA$event = (DTA$exit_cause == "psa_relapse_date")*1
 
-# HR
+# HR only biopsy markers
 vars_hr = c("`Perineural invasion`",
             "`Age (per 5yr)`",
             "PSA",
@@ -40,7 +40,28 @@ hr <- coxph(formula, data = DTA)
 cox.zph(hr)
 
 ggf <- ggforest(hr)
-ggsave(plot = ggf, filename="../output/HR.png")
+ggsave(plot = ggf, filename="../output/HR_only_biopsy_markers.png")
+ggsave(plot = ggf, filename="../output/HR_only_biopsy_markers.pdf")
+
+# HR biopsy and RP markers
+vars_hr = c("`Perineural invasion`",
+            "`Age (per 5yr)`",
+            "PSA",
+            "`Digital rectal examination`",
+            "`Cancer length (per 10mm)`",
+            "`Gleason score`",
+            "`Pathological stage`",
+            "`Surgical margin`")
+
+adjust <- paste(vars_hr, collapse = ' + ')
+formula = as.formula(paste0("Surv(time, event) ~ ", adjust))
+
+hr <- coxph(formula, data = DTA)
+cox.zph(hr)
+
+ggf <- ggforest(hr)
+ggsave(plot = ggf, filename="../output/HR_including_RP_markers.png")
+ggsave(plot = ggf, filename="../output/HR_including_RP_markers.pdf")
 
 # Survival
 get_mode <- function(x){names(sort(-table(x)))[1]}
