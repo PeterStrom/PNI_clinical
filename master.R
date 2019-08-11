@@ -13,7 +13,13 @@
 #-----------------------------------------------------------------------------
 
 #-- Libraries ----------------------------------------------------------------
-wants <- c("tidyverse", "lubridate", "Epi", "survival", "survminer", "openxlsx")
+wants <- c("tidyverse",
+           "lubridate",
+           "Epi",
+           "survival",
+           "survminer",
+           "openxlsx",
+           "metafor")
 has   <- wants %in% rownames(installed.packages())
 if(any(!has)) install.packages(wants[!has])
 lapply(wants, require, character.only = TRUE)
