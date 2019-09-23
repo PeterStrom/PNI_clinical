@@ -19,7 +19,8 @@ wants <- c("tidyverse",
            "survival",
            "survminer",
            "openxlsx",
-           "metafor")
+           "metafor",
+           "stdReg")
 has   <- wants %in% rownames(installed.packages())
 if(any(!has)) install.packages(wants[!has])
 lapply(wants, require, character.only = TRUE)
@@ -28,7 +29,7 @@ rm(wants, has)
 #-- Main program -------------------------------------------------------------
 event_threshold = 0.2  # ng/mL also common value is 0.4
 first_psa_below = 0.2  # ng/mL
-end_of_study = as.Date("2017-12-31")
+end_of_study = as.Date("2018-12-31")
 
 # source("raw_to_analysis.R")  # Only need once!
 load("../data/analysis_data.RData")
@@ -39,5 +40,5 @@ source("survival.R")
 source("Table1.R")
 source("metaanalysis.R")
 
-save(newdata, tracker, surv3yr, n_exp, n_unexp,
+save(newdata, tracker, n_exp, n_unexp, std_surv_5yr, logcombinded,
      file="../data/numbers_for_article.RData")

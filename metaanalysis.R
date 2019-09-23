@@ -2,12 +2,12 @@
 # 1. de la Taille, 2.25, (1.19–4.23)
 # 2. Loeb. 1.57 (0.87–2.83)
 # 3. DeLancey, 1.45 (1.09-1.92)
-# 4. Our, 1.86 (CI: 1.11-3.1) or 1.70 (CI: 1.00-2.9)
+# 4. Our, 1.55 (CI: 0.98-2.46) or 1.41 (CI: 0.88-2.24)
 
 # lowerCI = exp(logHR-1.96*(SE)) so SE = (logHR - log(lowerCI))/1.96
 study_labels <- c("de la Taille", "Loeb", "DeLancey", "Our")
-HR <- c(2.25, 1.57, 1.45, 1.86)
-lower_CI95 <- c(1.19, 0.87, 1.09, 1.11)
+HR <- c(2.25, 1.57, 1.45, 1.55)
+lower_CI95 <- c(1.19, 0.87, 1.09, 0.98)
 logHR <- log(HR)
 SE <- (logHR - log(lower_CI95))/1.96
 logcombinded <- rma.uni(yi = logHR, sei = SE)

@@ -7,14 +7,23 @@
 ##############################################################################
 # Read data and selcect columns of interest.
 ##############################################################################
-data_path <- "../data/raw_data"
-SCB_PERS <- read_csv(file.path(data_path, 'sthlm0', 'SCB2_PERSON_MAIN.csv'))  # Personal characteristics
-SCB_PSA <- read_csv(file.path(data_path, 'sthlm0', 'SCB2_S0_PSA.csv'))  # STHLM0 PSA register
-SOS_DEAD <- read_csv(file.path(data_path, 'sthlm0', 'SOS2_DEAD_CAUSE.csv'))  # Cause of death register
+data_path <- "H:/PNI/Clinical_study/data/raw_data"
+SCB_PERS <- read_tsv(file.path(data_path, 'sthlm0_2018', 'SCB2_PERSON_MAIN.txt'))  # Personal characteristics
+SOS_DEAD <- read_tsv(file.path(data_path, 'sthlm0_2018', 'death_20190909.txt'))  # Cause of death register
+SCB_PSA <- read_tsv(file.path(data_path, 'sthlm0_2018', 'psa_201812312019-09-19.txt'))  # STHLM0 PSA register
 LINK_rid_REG <- read_tsv(file.path(data_path, 'sthlm3',  'STHLM3_STUDY.txt'))  # Link between STHLM0 and STHLM3
 LINK_rid_studieid <- readxl::read_excel(file.path(data_path, 'PADoIPToStudieID_20180917.xlsx'))
 DTA <- readxl::read_excel(file.path(data_path, 'PatiOrdning_Ren.xlsx'))  # Postop data STHLM3
 PNI_info <- read_csv(file.path(data_path, 'pni_core.csv'))
+
+# data_path <- "../data/raw_data"
+# SCB_PERS <- read_csv(file.path(data_path, 'sthlm0', 'SCB2_PERSON_MAIN.csv'))  # Personal characteristics
+# SCB_PSA <- read_csv(file.path(data_path, 'sthlm0', 'SCB2_S0_PSA.csv'))  # STHLM0 PSA register
+# SOS_DEAD <- read_csv(file.path(data_path, 'sthlm0', 'SOS2_DEAD_CAUSE.csv'))  # Cause of death register
+# LINK_rid_REG <- read_tsv(file.path(data_path, 'sthlm3',  'STHLM3_STUDY.txt'))  # Link between STHLM0 and STHLM3
+# LINK_rid_studieid <- readxl::read_excel(file.path(data_path, 'PADoIPToStudieID_20180917.xlsx'))
+# DTA <- readxl::read_excel(file.path(data_path, 'PatiOrdning_Ren.xlsx'))  # Postop data STHLM3
+# PNI_info <- read_csv(file.path(data_path, 'pni_core.csv'))
 
 ##############################################################################
 # Combine the link information for STHLM3 and STHLM0.
@@ -26,48 +35,48 @@ keep <- c("REGnr",
 LINK_rid_studieid <- LINK_rid_studieid[keep]
 LINK_rid_studieid <- LINK_rid_studieid %>% 
   rename(Studieid = Studieid__contact_patologsvar_,
-                                                  RID = rid)
+         RID = rid)
 LINK <- left_join(x=LINK_rid_studieid, y=LINK_rid_REG, by="RID")
 
 ##############################################################################
 # Columns to use from STHLM3 postop (DTA).
 ##############################################################################
 keep <- c("Studieid",
-         "Birth",
-         "TotalPSA",
-         "Inclusion_age",
-         "VisitDate",
-         "Cancerlength",
-         "CancerNumberBiopsy",
-         "Diagcat_HGPIN",
-         "Diagcat_IDC",
-         "DuctalCancer",
-         "ExtraprostaticExtension",
-         "DiagGleason1",
-         "DiagGleason2",
-         "DiagGleasonSum",
-         "PalpFind_T1",
-         "PalpFind_T2",
-         "PalpFind_T3",
-         "PalpFind_T4",
-         "PerineuralInvasion",
-         "ProstateVolume",
-         "TotalNumberBiopsy",
-         "Op_datum",  # OP variables below.
-         "Vikt_i__gram",                 
-         "Tumorstorlek_1",
-         "Gleason1",
-         "Gleason2",
-         "Summa",
-         "Tertiar_grad",
-         "Tumorstorlek_2",
-         "Gl_summa_tumor_2",
-         "Ant_kortlar_utrymda_o_antal_pos",
-         "Resektionsrand_po__el_neg",
-         "Vesikelinvasion_pos_el_neg",
-         "Extraprostatisk_vaxt_pos_el_neg",
-         "Perineural_vaxt",
-         "pT")
+          "Birth",
+          "TotalPSA",
+          "Inclusion_age",
+          "VisitDate",
+          "Cancerlength",
+          "CancerNumberBiopsy",
+          "Diagcat_HGPIN",
+          "Diagcat_IDC",
+          "DuctalCancer",
+          "ExtraprostaticExtension",
+          "DiagGleason1",
+          "DiagGleason2",
+          "DiagGleasonSum",
+          "PalpFind_T1",
+          "PalpFind_T2",
+          "PalpFind_T3",
+          "PalpFind_T4",
+          "PerineuralInvasion",
+          "ProstateVolume",
+          "TotalNumberBiopsy",
+          "Op_datum",  # OP variables below.
+          "Vikt_i__gram",                 
+          "Tumorstorlek_1",
+          "Gleason1",
+          "Gleason2",
+          "Summa",
+          "Tertiar_grad",
+          "Tumorstorlek_2",
+          "Gl_summa_tumor_2",
+          "Ant_kortlar_utrymda_o_antal_pos",
+          "Resektionsrand_po__el_neg",
+          "Vesikelinvasion_pos_el_neg",
+          "Extraprostatisk_vaxt_pos_el_neg",
+          "Perineural_vaxt",
+          "pT")
 
 DTA <- DTA[keep]
 DTA$Op_datum <- as.Date(format(DTA$Op_datum, format='%Y-%m-%d'))
@@ -104,9 +113,10 @@ DTA <- left_join(x=DTA, y=pni, by="Studieid")
 ##############################################################################
 # From cause of death register add death date.
 ##############################################################################
-keep <- c("X_DODSDAT",
-          "LOPNR")
+keep <- c("x_death_date",
+          "lopnr")
 SOS_DEAD <- SOS_DEAD[keep]
+SOS_DEAD <- rename(SOS_DEAD, X_DODSDAT = x_death_date, LOPNR = lopnr)
 
 SOS_DEAD <- left_join(x=SOS_DEAD, y=LINK[, c("Studieid", "LOPNR")], by="LOPNR")
 SOS_DEAD$LOPNR <- NULL
@@ -137,14 +147,17 @@ men_moving_out_of_sthlm <- function(SCB_PERS){
   #       STHLM - Emigration will be coded end of that year: year-12-31.
   
   # Select columns
-  col = c("Studieid", paste("COUNTY_", 2008:2017, sep = ""), "Op_datum")
+  col = c("Studieid", paste("COUNTY_", 2008:2018, sep = ""), "Op_datum")
   df_emi_sthlm <- SCB_PERS[, col]
+  
+  col = paste("COUNTY_", 2008:2018, sep = "")
+  df_emi_sthlm[, col] <- lapply(df_emi_sthlm[, col], as.numeric)
   
   # Make long format
   df_emi_sthlm <- gather(df_emi_sthlm,
                          key="county_year",
                          value="county",
-                         COUNTY_2008:COUNTY_2017)
+                         COUNTY_2008:COUNTY_2018)
   
   # Make variable for each year
   df_emi_sthlm['change_county_date'] <- as.numeric(substr(df_emi_sthlm$county_year,
@@ -186,7 +199,7 @@ SCB_PSA[(SCB_PSA$RESULT_RAW == "<0,05") & (!is.na(SCB_PSA$RESULT_RAW)), ]$X_RESU
 SCB_PSA <- SCB_PSA[c("LOPNR", "X_SAMPLE_DATE", "X_RESULT")]
 
 # Remove Missing date or value on PSA
-SCB_PSA$X_SAMPLE_DATE <- as.Date(format(SCB_PSA$X_SAMPLE_DATE, format='%Y-%m-%d'))
+# SCB_PSA$X_SAMPLE_DATE <- as.Date(format(SCB_PSA$X_SAMPLE_DATE, format='%Y-%m-%d'))
 SCB_PSA <-SCB_PSA[SCB_PSA$X_RESULT >= 0, ]
 SCB_PSA <- SCB_PSA %>% drop_na(X_SAMPLE_DATE)
 
