@@ -40,5 +40,5 @@ source("survival.R")
 source("Table1.R")
 source("metaanalysis.R")
 
-save(newdata, tracker, n_exp, n_unexp, std_surv_5yr, logcombinded,
+save(tracker, n_exp, n_unexp, std_surv_5yr, logcombinded, followup_tilme,
      file="../data/numbers_for_article.RData")

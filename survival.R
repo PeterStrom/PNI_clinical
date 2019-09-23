@@ -25,6 +25,10 @@ dev.off()
 DTA$time = (DTA$exit_date - DTA$Op_datum) / 365.25
 DTA$event = (DTA$exit_cause == "psa_relapse_date")*1
 
+followup_tilme = list(mean_followup = mean(DTA$time),
+                      median_followup = median(DTA$time),
+                      iqr_followup = IQR(DTA$time))
+
 # HR only biopsy markers
 vars_hr = c("`Perineural invasion`",
             "`Age (per 5yr)`",
