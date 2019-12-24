@@ -35,7 +35,7 @@ vars_hr = c("`Perineural invasion`",
             "PSA",
             "`Digital rectal examination`",
             "`Cancer length (per 10mm)`",
-            "`Gleason score`")
+            "ISUP")
 
 adjust <- paste(vars_hr, collapse = ' + ')
 formula = as.formula(paste0("Surv(time, event) ~ ", adjust))
@@ -53,7 +53,7 @@ vars_hr = c("`Perineural invasion`",
             "PSA",
             "`Digital rectal examination`",
             "`Cancer length (per 10mm)`",
-            "`Gleason score`",
+            "ISUP",
             "`Pathological stage`",
             "`Surgical margin`")
 
@@ -69,7 +69,7 @@ ggsave(plot = ggf, filename="../output/HR_including_RP_markers.pdf")
 
 # Survival
 hr_surv <- coxph(Surv(time, event) ~ `Age (per 5yr)` + PSA + `Digital rectal examination` + 
-                   `Cancer length (per 10mm)` + `Gleason score` + `Perineural invasion`,
+                   `Cancer length (per 10mm)` + ISUP + `Perineural invasion`,
                  data = DTA, ties="breslow")
 surv5yr <- stdCoxph(fit=hr_surv, data=DTA, X="Perineural invasion", t=5)
 std_surv_5yr <- round(summary(surv5yr)$est.table[[1]], 2)

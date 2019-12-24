@@ -12,6 +12,12 @@ DTA[DTA$DiagGleasonSum == 7 & DTA$DiagGleason1 == 4, ]$GS <- "4 + 3"
 DTA[DTA$DiagGleasonSum > 7.5, ]$GS <- "4 + 4 or higher"
 DTA$GS <- as.factor(DTA$GS)
 
+DTA$ISUP <- "1"
+DTA[DTA$DiagGleasonSum == 7 & DTA$DiagGleason1 == 3, ]$ISUP <- "2"
+DTA[DTA$DiagGleasonSum == 7 & DTA$DiagGleason1 == 4, ]$ISUP <- "3"
+DTA[DTA$DiagGleasonSum > 7.5, ]$ISUP <- "4-5"
+DTA$ISUP <- as.factor(DTA$ISUP)
+
 DTA$dre <- with(DTA, PalpFind_T2 == "Ja" | PalpFind_T3 == "Ja" | PalpFind_T4 == "Ja")
 DTA$dre <- ifelse(DTA$dre, "Positive", "Negative")
 DTA$dre <- as.factor(DTA$dre)
